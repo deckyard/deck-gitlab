@@ -1,0 +1,33 @@
+# Grimoire book configuration for the @deckyard/gitlab documentation.
+
+[book]
+title = "@deckyard/gitlab"
+description = "A client for the GitLab REST API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
+language = "en"
+src = "docs"
+
+[build]
+out = "site"
+clean = true
+jobs = 0
+
+[html]
+theme = "terminal"
+mode = "auto"
+navPosition = "left"
+tocPosition = "right"
+tocDepth = 3
+sectionNumbers = true
+titleUrl = "https://deckyard.github.io/deck-gitlab/"
+repoUrl = "https://github.com/deckyard/deck-gitlab"
+repoLabel = "Source"
+editUrl = "https://github.com/deckyard/deck-gitlab/edit/main/docs/{path}"
+
+[highlight]
+enabled = true
+
+[search]
+enabled = true
+
+[pdf]
+enabled = false
