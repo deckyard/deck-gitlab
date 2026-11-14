@@ -4,8 +4,8 @@
 # pragma-jennifer-capability: net
 
 /**
- * A client for the GitLab REST API (`/api/v4`), for gitlab.com or a
- * self-managed instance.
+ * A client for the GitLab REST API (`/api/v4`) and its GraphQL endpoint,
+ * for gitlab.com or a self-managed instance.
  *
  * A thin client: `call` reaches any endpoint, `getAll` follows the pages of
  * a list and `graphql` runs a GraphQL query. Typed verbs cover the daily

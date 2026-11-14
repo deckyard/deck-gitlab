@@ -2,7 +2,7 @@
 
 [book]
 title = "@deckyard/gitlab"
-description = "A client for the GitLab REST API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
+description = "A client for the GitLab REST and GraphQL API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
 language = "en"
 src = "docs"
 

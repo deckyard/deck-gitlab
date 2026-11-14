@@ -4,7 +4,7 @@
 [![Documentation](https://img.shields.io/badge/docs-github%20pages-blue)](https://deckyard.github.io/deck-gitlab/)
 [![release](https://img.shields.io/github/v/release/deckyard/deck-gitlab)](https://github.com/deckyard/deck-gitlab/releases/latest)
 
-A client for the GitLab REST API (v4), for
+A client for the GitLab REST (v4) and GraphQL API, for
 [Jennifer](https://jennifer-lang.dev/) programs: gitlab.com or a
 self-managed instance. Projects, groups and subgroups, members and hooks;
 issues, notes, labels and milestones; merge requests, approvals and

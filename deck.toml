@@ -1,7 +1,7 @@
 [package]
 name = "@deckyard/gitlab"
 version = "0.1.0"
-description = "A client for the GitLab REST API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
+description = "A client for the GitLab REST and GraphQL API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
 license = "LGPL-3.0-only"
 authors = ["mplx <mplx@jennifer-lang.dev>"]
 # The deck talks to a GitLab instance over HTTPS, so it opens sockets. No
