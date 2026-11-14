@@ -61,6 +61,10 @@ Passing the head `sha` makes the merge refuse (HTTP 409) when someone
 pushed in between. HTTP 405 means it cannot be merged now: a draft,
 conflicts, missing approvals or a pipeline that must succeed.
 
+`sourceProjectId` and `targetProjectId` name the projects of the two
+branches; they differ for a merge request from a fork, whose source branch
+is not the project's to delete.
+
 `approvals` reads who approved; `required` and `left` count only on GitLab
 Premium and Ultimate. `mergeRequestChanges` lists the changed files with
 their diffs, `mergeRequestNotes` and `addMergeRequestNote` the discussion.

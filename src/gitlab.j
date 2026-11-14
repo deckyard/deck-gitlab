@@ -298,6 +298,9 @@ export def struct Note {
  * @field webUrl {string} its page
  * @field created {string} RFC 3339
  * @field mergedAt {string} RFC 3339; "" until merged
+ * @field sourceProjectId {int} the project the source branch is in; another
+ *   than `targetProjectId` for a merge request from a fork
+ * @field targetProjectId {int} the project it merges into
  */
 export def struct MergeRequest {
     iid as int,
@@ -317,7 +320,9 @@ export def struct MergeRequest {
     squashSha as string,
     webUrl as string,
     created as string,
-    mergedAt as string
+    mergedAt as string,
+    sourceProjectId as int,
+    targetProjectId as int
 };
 
 /**
@@ -2655,7 +2660,9 @@ func mergeRequestFrom(d as json.Value) {
         squashSha: field($d, "/squash_commit_sha"),
         webUrl: field($d, "/web_url"),
         created: field($d, "/created_at"),
-        mergedAt: field($d, "/merged_at")
+        mergedAt: field($d, "/merged_at"),
+        sourceProjectId: numberAt($d, "/source_project_id"),
+        targetProjectId: numberAt($d, "/target_project_id")
     };
 }
 
@@ -4152,19 +4159,23 @@ export func retryPipeline(c as Client, project as string, id as int) {
 }
 
 /**
- * The CI/CD variables of a project.
+ * The CI/CD variables of a project that apply to every environment
+ * (`environment_scope` `*`), the copies `setVariable` and `deleteVariable`
+ * act on. A copy scoped to some environments is left out, so a name set
+ * only for `production` is absent; `call` lists those.
  *
  * @param c {Client} the client
  * @param project {string} the id or full path
- * @return {map of string to string} each variable's value by its name; a
- *   hidden variable's value is ""; a name set for several environments
- *   appears once, with one of its values
+ * @return {map of string to string} each every-environment variable's
+ *   value by its name; a hidden variable's value is ""
  * @throws {GitlabError} kind `"gitlab"` as `getAll`
  */
 export func variables(c as Client, project as string) {
     def out as map of string to string init {};
     for (def d in getAll($c, projectPath($project) + "/variables")) {
-        $out[field($d, "/key")] = field($d, "/value");
+        if (field($d, "/environment_scope") == "*") {
+            $out[field($d, "/key")] = field($d, "/value");
+        }
     }
     return $out;
 }

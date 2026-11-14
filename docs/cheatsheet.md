@@ -170,6 +170,8 @@ A merge request.
 | `webUrl as string` | its page |
 | `created as string` | RFC 3339 |
 | `mergedAt as string` | RFC 3339; "" until merged |
+| `sourceProjectId as int` | the project the source branch is in; another than `targetProjectId` for a merge request from a fork |
+| `targetProjectId as int` | the project it merges into |
 
 ### `Approvals`
 
@@ -505,7 +507,7 @@ A member of a project.
 | `gitlab.triggerPipeline(c, project, triggerToken, ref, variables)` | `Pipeline` | run a pipeline with a trigger token |
 | `gitlab.cancelPipeline(c, project, id)` | `Pipeline` | cancel the running jobs of a pipeline |
 | `gitlab.retryPipeline(c, project, id)` | `Pipeline` | retry the failed and canceled jobs of a pipeline |
-| `gitlab.variables(c, project)` | `map of string to string` | the CI/CD variables of a project |
+| `gitlab.variables(c, project)` | `map of string to string` | the CI/CD variables of a project that apply to every environment (`*`) |
 | `gitlab.setVariable(c, project, name, value, masked)` |  | create or replace a CI/CD variable of a project, for every environment |
 | `gitlab.deleteVariable(c, project, name)` |  | delete the every-environment (`*`) CI/CD variable of a project |
 

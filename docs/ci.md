@@ -48,8 +48,9 @@ def vars as map of string to string init gitlab.variables($c, "me/app");
 
 A variable is set for every environment (scope `*`); `setVariable` and
 `deleteVariable` leave a variable of the same name scoped to one
-environment alone. `variables` reads every scope, so such a name appears
-once, with one of its values. GitLab stores the value as given, with no
+environment alone. `variables` lists the same copies, the every-environment
+ones: a name set only for `staging` is absent, and a name set for `*` and
+`production` gives its `*` value. `call` reaches the scoped ones. GitLab stores the value as given, with no
 client-side encryption; `masked` only hides it in job logs, and needs 8 or
 more characters without spaces. Names are letters, digits and `_`.
 

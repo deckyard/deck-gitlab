@@ -1198,7 +1198,10 @@ func testPipelinesAndVariables() {
         ok($pl),
         ok($pl),
         ok($pl),
-        pageOf('[{"key":"A","value":"1"},{"key":"B","value":"2"}]', ""),
+        pageOf(
+            '[{"key":"A","value":"1","environment_scope":"*"},' +
+                '{"key":"B","value":"2","environment_scope":"*"}]',
+            ""),
         answer(404, '{"message":"404 Variable Not Found"}'),
         ok('{"key":"C"}'),
         ok("")
@@ -1453,4 +1456,41 @@ func testRetriesOnlyReads() {
     testing.assertEqual(len($seen), 3);
     testing.assertEqual($seen[1].method, "GET");
     testing.assertEqual($seen[2].method, "POST");
+}
+
+# variables() lists only the every-environment copies, the ones setVariable
+# and deleteVariable act on: GitLab lists a name once per scope.
+func testVariablesAreTheEveryEnvironmentCopies() {
+    def f as Fake init fake([
+        pageOf(
+            '[{"key":"REGION","value":"eu","environment_scope":"*"},' +
+                '{"key":"REGION","value":"us","environment_scope":"production"},' +
+                '{"key":"DEBUG","value":"1","environment_scope":"staging"},' +
+                '{"key":"TOKEN","value":"","environment_scope":"*","hidden":true}]',
+            "")
+    ]);
+    def vs as map of string to string init variables(tokenClient($f), "grp/app");
+    testing.assertEqual($vs, {"REGION": "eu", "TOKEN": ""});
+    testing.assertFalse(maps.has($vs, "DEBUG"));
+    def seen as list of Seen init finish($f);
+    testing.assertEqual($seen[0].path, "/api/v4/projects/grp/app/variables");
+}
+
+# A merge request names the projects of its source and target branch: they
+# differ for one from a fork.
+func testMergeRequestProjects() {
+    def fork as string init strings.replace(
+        MR,
+        '"draft":false,',
+        '"draft":false,"source_project_id":9,"target_project_id":7,');
+    def f as Fake init fake([ok($fork), ok(MR)]);
+    def c as Client init tokenClient($f);
+    def mr as MergeRequest init mergeRequest($c, "grp/sub/app", 15);
+    testing.assertEqual($mr.sourceProjectId, 9);
+    testing.assertEqual($mr.targetProjectId, 7);
+    # Absent members read as 0, as every number of a reply.
+    def bare as MergeRequest init mergeRequest($c, "grp/sub/app", 15);
+    testing.assertEqual($bare.sourceProjectId, 0);
+    testing.assertEqual($bare.targetProjectId, 0);
+    finish($f);
 }
