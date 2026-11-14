@@ -20,7 +20,7 @@ A state is one of `STATUS_STATES`: `pending`, `running`, `success`,
 `failed`, `canceled` or `skipped`. GitLab refuses some moves, such as from
 `success` back to `pending`. The statuses of a commit form an external
 pipeline of their own. `combinedStatus` keeps the latest status per name
-and names the worst; `commitStatuses` lists every one.
+and names the worst; `commitStatuses` lists every one, newest first.
 
 ## Pipelines
 

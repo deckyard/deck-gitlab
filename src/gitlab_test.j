@@ -1137,7 +1137,9 @@ func testTreeBranchesTagsCommits() {
 func testCommitStatuses() {
     def f as Fake init fake([
         ok('{"id":1,"name":"ci/build","status":"success","ref":"main","author":{"username":"ci"}}'),
-        pageOf('[{"name":"a","status":"success"},{"name":"b","status":"pending"}]', ""),
+        pageOf(
+            '[{"id":11,"name":"a","status":"success"},{"id":12,"name":"b","status":"pending"}]',
+            ""),
         pageOf(
             '[{"name":"a","status":"success"},{"name":"b","status":"failed"},' +
                 '{"name":"c","status":"running"}]',
@@ -1163,6 +1165,9 @@ func testCommitStatuses() {
         json.encode(bodyJson($seen[0])),
         '{"name":"ci/build","state":"success","target_url":"https://ci/1"}');
     testing.assertEqual(len($all), 2);
+    # GitLab sends oldest first; the deck returns newest first
+    testing.assertEqual($all[0].id, 12);
+    testing.assertEqual($all[1].id, 11);
     testing.assertEqual($seen[1].query, "all=true&per_page=100");
     testing.assertEqual($combined.status, "failed");
     testing.assertEqual($none.status, "");

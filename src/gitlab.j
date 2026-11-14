@@ -3891,7 +3891,8 @@ export func setCommitStatus(
 }
 
 /**
- * Every status set on a commit, newest first.
+ * Every status set on a commit, newest first. GitLab lists them oldest
+ * first; every page is read, then the list is reversed.
  *
  * @param c {Client} the client
  * @param project {string} the id or full path
@@ -3906,7 +3907,7 @@ export func commitStatuses(c as Client, project as string, sha as string) {
     for (def d in getAll($c, $path)) {
         $out[] = statusFrom($d);
     }
-    return $out;
+    return lists.reverse($out);
 }
 
 # The states from worst to best, for `combinedStatus`; one not listed counts
