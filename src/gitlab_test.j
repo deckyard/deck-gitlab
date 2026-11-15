@@ -1327,6 +1327,45 @@ func testLocalFailuresAndCaps() {
     }
 }
 
+# A network failure is a net.NetError, passed on unchanged with its fields,
+# from every path a request takes: JSON calls, GraphQL, byte downloads and
+# uploads.
+func testNetworkFailuresPassOnUnchanged() {
+    def f as Fake init fake([]);
+    def c as Client init tokenClient($f);
+    finish($f);
+    def calls as int init 0;
+    for (def which in ["call", "graphql", "readFile", "upload"]) {
+        try {
+            if ($which == "call") {
+                project($c, "grp/app");
+            } elseif ($which == "graphql") {
+                graphql($c, '{ currentUser { username } }', json.map());
+            } elseif ($which == "readFile") {
+                readFile($c, "grp/app", "VERSION", "main", 0);
+            } else {
+                uploadPackageFile(
+                    $c,
+                    "grp/app",
+                    "app",
+                    "1.0",
+                    "a.txt",
+                    convert.bytesFromString("utf-8", "x"));
+            }
+            missed();
+        } catch (e) {
+            testing.assertEqual($e.kind, "net");
+            testing.assertEqual($e.reason, "refused");
+            testing.assertEqual($e.op, "connect");
+            testing.assertFalse($e.sent);
+            testing.assertFalse($e.replied);
+            testing.assertFalse(strings.startsWith($e.message, "gitlab: "));
+            $calls = $calls + 1;
+        }
+    }
+    testing.assertEqual($calls, 4);
+}
+
 # The verbs the other tests leave out: each sends the request it names.
 func testTheOtherVerbs() {
     def none as Reply init pageOf("[]", "");

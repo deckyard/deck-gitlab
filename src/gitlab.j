@@ -20,7 +20,9 @@
  * Every failure is a `GitlabError` (kind `"gitlab"`) carrying the HTTP
  * `status` the instance answered, except that a listing past `MAX_PAGES`
  * pages or a reply over its size cap is kind `"limit"`, a deadline is kind
- * `"timeout"` and a cancelled task stays `"cancelled"`.
+ * `"timeout"`, a cancelled task stays `"cancelled"`, and a network failure
+ * (refused, reset, unreachable, DNS, TLS) is a `net.NetError` of kind
+ * `"net"`, passed on unchanged.
  *
  * @module gitlab
  * @see https://docs.gitlab.com/api/rest/
@@ -656,7 +658,8 @@ func failStatus(message as string, status as int) {
  * Throw the error of a request that got no usable answer. A cancelled task
  * stays as it is; a reached cap, a deadline or a closed connection keeps its
  * kind (`"limit"`, `"timeout"`, `"closed"`) with the request named; anything
- * else is a GitlabError.
+ * else is a GitlabError. A `net.NetError` (kind `"net"`) is not an `Error`:
+ * callers rethrow it unchanged before calling this.
  *
  * @param what {string} the request, `<verb> <path>`
  * @param e {Error} the caught error
@@ -1056,6 +1059,9 @@ func exchange(c as Client, method as string, path as string, body as string) {
         try {
             $r = http.send($verb, $c.url + "/api/v4" + $current, $headers, $body, $o);
         } catch (e) {
+            if ($e.kind == "net") {
+                throw $e;
+            }
             failTransport($verb + " " + $path, $e);
         }
         def location as string init strings.trim(http.header($r, "Location"));
@@ -1225,8 +1231,9 @@ func decoded(body as string, what as string) {
  *   is encoded by the caller
  * @param body {string} the JSON body; "" for none
  * @return {json.Value} the reply; JSON `null` when it is empty
- * @throws {GitlabError} kind `"gitlab"` on a bad path, a network failure or a
- *   reply that is not 2xx; the message names the status and GitLab's reason
+ * @throws {GitlabError} kind `"gitlab"` on a bad path or a reply that is not
+ *   2xx; the message names the status and GitLab's reason
+ * @throws {net.NetError} kind `"net"` when the network fails
  * @example
  *   def labels as json.Value init gitlab.call($c, "GET", "/projects/42/labels", "");
  */
@@ -1358,6 +1365,7 @@ export func getAll(c as Client, path as string) {
  * @return {json.Value} the whole reply; the result is under `/data`
  * @throws {GitlabError} kind `"gitlab"` when GitLab reports GraphQL errors or
  *   refuses the request; `status` is the HTTP status
+ * @throws {net.NetError} kind `"net"` when the network fails
  * @example
  *   def r as json.Value init gitlab.graphql($c, '{ currentUser { username } }', json.map());
  *   io.printf("%s\n", json.asString($r, "/data/currentUser/username"));
@@ -1389,6 +1397,9 @@ export func graphql(c as Client, query as string, variables as json.Value) {
                 $said = strings.substring($said, len("graphql: "));
             }
             failStatus("POST /api/graphql: " + plain($said, REASON), $e.status);
+        }
+        if ($e.kind == "net") {
+            throw $e;
         }
         def err as Error init $e;
         failTransport("POST /api/graphql", $err);
@@ -3224,8 +3235,8 @@ func checkPackagePart(text as string, marks as string, what as string) {
  * @param fileName {string} the file name, letters, digits and `._+~@-`
  * @param data {bytes} the content
  * @return {string} the file's download URL under `/api/v4`
- * @throws {GitlabError} kind `"gitlab"` on a bad name, a network failure or a
- *   refusal
+ * @throws {GitlabError} kind `"gitlab"` on a bad name or a refusal
+ * @throws {net.NetError} kind `"net"` when the network fails
  */
 export func uploadPackageFile(
     c as Client,
@@ -3255,6 +3266,9 @@ export func uploadPackageFile(
             0,
             $c.tls);
     } catch (e) {
+        if ($e.kind == "net") {
+            throw $e;
+        }
         failTransport("PUT " + $path, $e);
     }
     if ($r.status < 200 or $r.status >= 300) {
@@ -3343,6 +3357,9 @@ func fetchBytes(c as Client, url as string, maxBytes as int) {
                 $maxBytes,
                 $c.tls);
         } catch (e) {
+            if ($e.kind == "net") {
+                throw $e;
+            }
             failTransport("GET " + $url, $e);
         }
         if (lists.contains([301, 302, 303, 307, 308], $r.status) and
@@ -3388,8 +3405,8 @@ func fetchBytes(c as Client, url as string, maxBytes as int) {
  * @param maxBytes {int} the largest file accepted; 0 for 64 MiB, negative
  *   for no limit
  * @return {bytes} the content
- * @throws {GitlabError} kind `"gitlab"` on a link elsewhere, a network failure
- *   or a refusal
+ * @throws {GitlabError} kind `"gitlab"` on a link elsewhere or a refusal
+ * @throws {net.NetError} kind `"net"` when the network fails
  * @throws {Error} kind `"limit"` for a file over `maxBytes`
  */
 export func downloadAsset(c as Client, link as ReleaseLink, maxBytes as int) {
@@ -3542,8 +3559,8 @@ export func deleteTag(c as Client, project as string, name as string) {
  * @param maxBytes {int} the largest file accepted; 0 for 64 MiB, negative
  *   for no limit
  * @return {bytes} the content
- * @throws {GitlabError} kind `"gitlab"` when it does not exist (HTTP 404), or on
- *   a network failure
+ * @throws {GitlabError} kind `"gitlab"` when it does not exist (HTTP 404)
+ * @throws {net.NetError} kind `"net"` when the network fails
  * @throws {Error} kind `"limit"` for a file over `maxBytes`
  */
 export func readFile(

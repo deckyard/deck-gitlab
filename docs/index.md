@@ -61,7 +61,10 @@ A refused value (a malformed project path, an empty title, an id or `iid`
 below 1) is a `GitlabError`
 with status 0, thrown before anything is sent. A list past `MAX_PAGES` pages,
 or a reply over its size cap, is kind `"limit"`; a deadline is `"timeout"`;
-a cancelled task stays `"cancelled"`. These are plain `Error`s.
+a cancelled task stays `"cancelled"`. These are plain `Error`s. A network
+failure (refused, reset, unreachable, DNS, TLS) is the `net.NetError` the
+interpreter raised, kind `"net"`, passed on unchanged: its `reason` says what
+failed, and `sent` false means GitLab never got the request.
 
 ## Requirements
 

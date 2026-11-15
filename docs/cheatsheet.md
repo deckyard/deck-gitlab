@@ -12,7 +12,9 @@ import "@deckyard/gitlab/" as gitlab;
 
 Every function that sends a request throws a `GitlabError` (kind `"gitlab"`,
 with the HTTP `status`) when it fails; a list past `MAX_PAGES` pages or a reply
-over its size cap is kind `"limit"`, a deadline `"timeout"`. A `project` is a
+over its size cap is kind `"limit"`, a deadline `"timeout"`, and a network failure
+is a `net.NetError` (kind `"net"`, with `reason`, `sent` and `replied`), passed on
+unchanged. A `project` is a
 numeric id (`"42"`) or a full path (`"group/sub/name"`); an `iid` is an issue's
 or merge request's number in its project. An `iid` or id below 1 is refused
 before anything is sent (status 0).
