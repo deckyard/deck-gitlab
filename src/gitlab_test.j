@@ -1533,3 +1533,91 @@ func testMergeRequestProjects() {
     testing.assertEqual($bare.targetProjectId, 0);
     finish($f);
 }
+
+# A token goes over plain http only to this machine unless withPlainHttp
+# allows another: every kind of request refuses it before anything is sent,
+# whichever header carries it. An anonymous client sends no secret and passes.
+func testPlainHttpOnlyToThisMachine() {
+    def lan as Client init client("http://gitlab.lan:8929");
+    testing.assertFalse($lan.allowPlainHttp);
+    checkPlain($lan);
+    def refusal as string init
+        "gitlab: plain http to \"gitlab.lan\" would send the token in clear: " +
+        "use https, or withPlainHttp";
+    def link as ReleaseLink;
+    $link.url = $lan.url + "/api/v4/projects/7/packages/generic/app/1.0/a.txt";
+    for (def c in [
+        withToken($lan, "t0k3n"),
+        withBearer($lan, "t0k3n"),
+        withJobToken($lan, "t0k3n")
+    ]) {
+        def refused as int init 0;
+        for (def which in ["call", "graphql", "readFile", "upload", "download"]) {
+            try {
+                if ($which == "call") {
+                    project($c, "grp/app");
+                } elseif ($which == "graphql") {
+                    graphql($c, '{ currentUser { username } }', json.map());
+                } elseif ($which == "readFile") {
+                    readFile($c, "grp/app", "VERSION", "main", 0);
+                } elseif ($which == "upload") {
+                    uploadPackageFile(
+                        $c,
+                        "grp/app",
+                        "app",
+                        "1.0",
+                        "a.txt",
+                        convert.bytesFromString("utf-8", "x"));
+                } else {
+                    downloadAsset($c, $link, 0);
+                }
+                missed();
+            } catch (e) {
+                testing.assertEqual(messageOf($e), $refusal);
+                testing.assertEqual($e.status, 0);
+                $refused = $refused + 1;
+            }
+        }
+        testing.assertEqual($refused, 5);
+    }
+    def allowed as Client init withPlainHttp(withToken($lan, "t0k3n"));
+    testing.assertTrue($allowed.allowPlainHttp);
+    checkPlain($allowed);
+    for (def here in [
+        "http://127.0.0.1:9000",
+        "http://localhost:3000",
+        "http://[::1]:8080",
+        "http://LocalHost/gitlab",
+        "gitlab.lan"
+    ]) {
+        checkPlain(withToken(client($here), "t0k3n"));
+    }
+    try {
+        checkPlain(withToken(client("http://127.0.0.1.example"), "t0k3n"));
+        missed();
+    } catch (e) {
+        testing.assertContains(messageOf($e), "plain http to \"127.0.0.1.example\"");
+    }
+}
+
+# withPlainHttp reaches REST and GraphQL: graphql.j from 0.27.0 refuses an
+# Authorization header over plain http unless its client allows it, so the
+# deck does. `.invalid` never resolves, so each request ends in a DNS
+# failure (kind "net"), not in a refusal (kind "gitlab").
+func testPlainHttpWhenAllowed() {
+    def c as Client init withTimeout(withPlainHttp(client("http://gitlab.invalid")), 2000);
+    for (def t in [withToken($c, "t0k3n"), withBearer($c, "t0k3n")]) {
+        try {
+            project($t, "grp/app");
+            missed();
+        } catch (e) {
+            testing.assertEqual($e.kind, "net");
+        }
+        try {
+            graphql($t, '{ currentUser { username } }', json.map());
+            missed();
+        } catch (e) {
+            testing.assertEqual($e.kind, "net");
+        }
+    }
+}

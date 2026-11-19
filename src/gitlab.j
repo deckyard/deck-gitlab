@@ -106,6 +106,8 @@ export def const STATUS_STATES as list of string init [
  * @field tls {http.TlsOptions} certificate checking
  * @field timeoutMs {int} the idle timeout of each request; 0 for 30 s
  * @field retries {int} retries of a GET answered 429 or 5xx
+ * @field allowPlainHttp {bool} whether the token may go over plain `http` to
+ *   another machine (it then crosses the network in clear)
  */
 export def struct Client {
     url as string,
@@ -113,7 +115,8 @@ export def struct Client {
     authHeader as string,
     tls as http.TlsOptions,
     timeoutMs as int,
-    retries as int
+    retries as int,
+    allowPlainHttp as bool
 };
 
 /**
@@ -632,6 +635,10 @@ def const DEFAULT_TIMEOUT_MS as int init 30000;
 # The redirects a byte download follows.
 def const MAX_REDIRECTS as int init 5;
 
+# The hosts a token goes to over plain http without `withPlainHttp`: this
+# machine.
+def const LOOPBACK as list of string init ["127.0.0.1", "localhost", "[::1]"];
+
 # The kinds an `http` failure keeps: the generic ones of the error table.
 def const GENERIC_KINDS as list of string init ["limit", "timeout", "closed"];
 
@@ -736,6 +743,10 @@ func baseUrl(address as string) {
 /**
  * A client for an instance, without a token.
  *
+ * A token goes over plain `http://` only to this machine (`127.0.0.1`,
+ * `::1`, `localhost`); for another one a request with a token is refused
+ * before anything is sent: add `withPlainHttp` for such an instance.
+ *
  * @param address {string} host name, `host:port` or a full URL; an instance
  *   below a path, such as `https://example.com/gitlab`, keeps the path
  * @return {Client} the client; full certificate checking
@@ -743,6 +754,7 @@ func baseUrl(address as string) {
  *   host or http(s) URL
  * @example
  *   def c as gitlab.Client init gitlab.client("gitlab.com");
+ *   $c = gitlab.withPlainHttp(gitlab.client("http://gitlab.lan"));
  */
 export func client(address as string) {
     def c as Client;
@@ -835,6 +847,38 @@ export func withCaCert(c as Client, pem as bytes) {
 export func withInsecure(c as Client) {
     $c.tls.skipVerify = true;
     return $c;
+}
+
+/**
+ * Allow the token over plain `http` to another machine, such as an instance
+ * on the LAN without TLS. The token crosses the network in clear.
+ *
+ * @param c {Client} the client
+ * @return {Client} the changed copy
+ * @example
+ *   def c as gitlab.Client init gitlab.withPlainHttp(gitlab.client("http://gitlab.lan"));
+ */
+export func withPlainHttp(c as Client) {
+    $c.allowPlainHttp = true;
+    return $c;
+}
+
+/**
+ * Refuse a token over plain http to another machine unless `withPlainHttp`
+ * allowed it. `authHeaders` runs it, so every request that would carry the
+ * token is refused before anything is sent.
+ *
+ * @param c {Client} the client
+ */
+func checkPlain(c as Client) {
+    if ($c.token != "" and strings.startsWith($c.url, "http://") and not $c.allowPlainHttp) {
+        def m as regex.Match init regex.find('^http://(\[[0-9A-Fa-f:.]+\]|[^:/]+)', $c.url);
+        def host as string init strings.lower($m.groups[0]);
+        if (not lists.contains(LOOPBACK, $host)) {
+            fail("plain http to " + shown($host) +
+                " would send the token in clear: use https, or withPlainHttp");
+        }
+    }
 }
 
 /**
@@ -991,12 +1035,14 @@ func encoded(text as string, what as string) {
 }
 
 /**
- * The headers that carry the credential.
+ * The headers that carry the credential, refused over plain http as
+ * `checkPlain` says.
  *
  * @param c {Client} the client
  * @return {map of string to string} the headers
  */
 func authHeaders(c as Client) {
+    checkPlain($c);
     def headers as map of string to string init {"Accept": "application/json"};
     if ($c.token != "") {
         if ($c.authHeader == "Authorization") {
@@ -1388,6 +1434,9 @@ export func graphql(c as Client, query as string, variables as json.Value) {
     }
     $g = gql.withTimeout($g, $c.timeoutMs);
     $g = gql.withBackoff(gql.withRetries($g, $c.retries), 500);
+    if ($c.allowPlainHttp) {
+        $g = allowCleartext($g);
+    }
     try {
         return gql.query($g, $query, $variables);
     } catch (e) {
@@ -1405,6 +1454,27 @@ export func graphql(c as Client, query as string, variables as json.Value) {
         failTransport("POST /api/graphql", $err);
     }
     return json.decode("null");
+}
+
+/**
+ * The GraphQL client allowed to send the token over plain http, for a
+ * client with `withPlainHttp`. `graphql.j` refuses an `Authorization`
+ * header so unless its `allowInsecureHttp` is set; before 0.27.0 it has
+ * neither the field nor the check, the assignment fails at run time with
+ * kind `"runtime"`, and the client goes as it is.
+ *
+ * @param g {gql.Client} the GraphQL client
+ * @return {gql.Client} the changed copy
+ */
+func allowCleartext(g as gql.Client) {
+    try {
+        $g.allowInsecureHttp = true;
+    } catch (e) {
+        if ($e.kind != "runtime") {
+            throw $e;
+        }
+    }
+    return $g;
 }
 
 /**

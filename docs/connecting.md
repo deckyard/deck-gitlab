@@ -21,6 +21,17 @@ follows a next page on the client's own address.
 A self-managed instance with its own CA is trusted with `withCaCert`;
 `withInsecure` turns certificate checking off.
 
+A token goes over plain `http://` only to this machine (`127.0.0.1`, `::1`,
+`localhost`). An instance elsewhere without TLS needs `withPlainHttp`, and
+the token then crosses the network in clear:
+
+```jennifer
+$c = gitlab.withPlainHttp(gitlab.client("http://gitlab.lan"));
+```
+
+Without it every request with a token fails before anything is sent (kind
+`"gitlab"`, status 0); an anonymous client is not refused.
+
 ## Tokens
 
 `withToken` sends a personal, project or group access token as

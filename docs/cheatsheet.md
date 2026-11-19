@@ -59,6 +59,7 @@ A connection to one GitLab instance.
 | `tls as http.TlsOptions` | certificate checking |
 | `timeoutMs as int` | the idle timeout of each request; 0 for 30 s |
 | `retries as int` | retries of a GET answered 429 or 5xx |
+| `allowPlainHttp as bool` | whether the token may go over plain `http` to another machine (it then crosses the network in clear) |
 
 ### `User`
 
@@ -380,6 +381,7 @@ A member of a project.
 | `gitlab.withInsecure(c)` | `Client` | accept any certificate |
 | `gitlab.withTimeout(c, ms)` | `Client` | set the idle timeout of each request |
 | `gitlab.withRetries(c, n)` | `Client` | retry GETs answered 429 or 5xx, honouring `Retry-After` |
+| `gitlab.withPlainHttp(c)` | `Client` | allow the token over plain http to another machine (an instance on the LAN) |
 | `gitlab.call(c, method, path, body)` | `json.Value` | any endpoint; `body` is JSON text |
 | `gitlab.getAll(c, path)` | `list of json.Value` | every page of a list endpoint |
 | `gitlab.graphql(c, query, variables)` | `json.Value` | a GraphQL query or mutation at `/api/graphql` |
