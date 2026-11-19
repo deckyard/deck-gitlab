@@ -1,6 +1,6 @@
 [package]
 name = "@deckyard/gitlab"
-version = "0.4.0"
+version = "0.5.0"
 description = "A client for the GitLab REST and GraphQL API: projects, issues, merge requests, pipelines, releases, branches, tags and files"
 license = "LGPL-3.0-only"
 authors = ["mplx <mplx@jennifer-lang.dev>"]
