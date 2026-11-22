@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 # SPDX-FileCopyrightText: Copyright (C) 2026 mplx <mplx@jennifer-lang.dev>
-# pragma-jennifer-version: >=0.26.0
+# pragma-jennifer-version: >=0.27.0
 # pragma-jennifer-capability: net
 
 /**
@@ -694,7 +694,7 @@ func plain(text as string, most as int) {
     def cut as string init $text;
     def more as string init "";
     if (len($text) > $most) {
-        $cut = strings.substring($text, 0, $most);
+        $cut = $text[..$most];
         $more = "...";
     }
     return regex.replace("[^ -~]", $cut, "?") + $more;
@@ -726,10 +726,10 @@ func baseUrl(address as string) {
         fail("an address holds no spaces, ?, # or @, got " + shown($address));
     }
     while (strings.endsWith($url, "/")) {
-        $url = strings.substring($url, 0, len($url) - 1);
+        $url = $url[..len($url) - 1];
     }
     if (strings.endsWith($url, "/api/v4")) {
-        $url = strings.substring($url, 0, len($url) - len("/api/v4"));
+        $url = $url[..len($url) - len("/api/v4")];
     }
     if (not strings.contains($url, "://")) {
         $url = "https://" + $url;
@@ -925,7 +925,7 @@ func ensurePath(path as string) {
     }
     def route as string init $path;
     if (strings.contains($route, "?")) {
-        $route = strings.substring($route, 0, strings.indexOf($route, "?"));
+        $route = $route[..strings.indexOf($route, "?")];
     }
     if (strings.contains($route, "//") or strings.contains($path, "#") or
         regex.matches('[\x00-\x20\x7f]', $path)) {
@@ -1150,7 +1150,7 @@ func apiPathOf(c as Client, from as string, target as string, what as string) {
         not strings.startsWith(strings.lower($url), strings.lower($api))) {
         fail($what + ": refused to follow " + shown($target) + " off " + $c.url + "/api/v4");
     }
-    def rest as string init strings.substring($url, len($api) - 1);
+    def rest as string init $url[len($api) - 1..];
     ensurePath($rest);
     return $rest;
 }
@@ -1236,7 +1236,7 @@ func failureText(status as int, statusText as string, body as string) {
         }
         # GitLab repeats the status in front: "404 Project Not Found".
         if (strings.startsWith($said, $code + " ")) {
-            $said = strings.trim(strings.substring($said, len($code) + 1));
+            $said = strings.trim($said[len($code) + 1..]);
         }
         if ($said != "") {
             $reason = $said;
@@ -1435,7 +1435,7 @@ export func graphql(c as Client, query as string, variables as json.Value) {
     $g = gql.withTimeout($g, $c.timeoutMs);
     $g = gql.withBackoff(gql.withRetries($g, $c.retries), 500);
     if ($c.allowPlainHttp) {
-        $g = allowCleartext($g);
+        $g.allowInsecureHttp = true;
     }
     try {
         return gql.query($g, $query, $variables);
@@ -1443,7 +1443,7 @@ export func graphql(c as Client, query as string, variables as json.Value) {
         if ($e.kind == "graphql") {
             def said as string init $e.message;
             if (strings.startsWith($said, "graphql: ")) {
-                $said = strings.substring($said, len("graphql: "));
+                $said = $said[len("graphql: ")..];
             }
             failStatus("POST /api/graphql: " + plain($said, REASON), $e.status);
         }
@@ -1454,27 +1454,6 @@ export func graphql(c as Client, query as string, variables as json.Value) {
         failTransport("POST /api/graphql", $err);
     }
     return json.decode("null");
-}
-
-/**
- * The GraphQL client allowed to send the token over plain http, for a
- * client with `withPlainHttp`. `graphql.j` refuses an `Authorization`
- * header so unless its `allowInsecureHttp` is set; before 0.27.0 it has
- * neither the field nor the check, the assignment fails at run time with
- * kind `"runtime"`, and the client goes as it is.
- *
- * @param g {gql.Client} the GraphQL client
- * @return {gql.Client} the changed copy
- */
-func allowCleartext(g as gql.Client) {
-    try {
-        $g.allowInsecureHttp = true;
-    } catch (e) {
-        if ($e.kind != "runtime") {
-            throw $e;
-        }
-    }
-    return $g;
 }
 
 /**
@@ -3387,7 +3366,7 @@ func resolved(from as string, location as string) {
         return $location;
     }
     if (strings.startsWith($location, "//")) {
-        return strings.substring($from, 0, strings.indexOf($from, "//")) + $location;
+        return $from[..strings.indexOf($from, "//")] + $location;
     }
     if (strings.startsWith($location, "/")) {
         return originOf($from) + $location;
@@ -3454,15 +3433,12 @@ func fetchBytes(c as Client, url as string, maxBytes as int) {
         if ($r.status < 200 or $r.status >= 300) {
             failStatus(
                 "GET " + $url + ": " +
-                    failureText(
-                    $r.status,
-                    $r.statusText,
-                    convert.stringFromBytes("utf-8", $r.body)),
+                    failureText($r.status, $r.statusText, encoding.decode("utf-8", $r.body)),
                 $r.status);
         }
         return $r.body;
     }
-    return convert.bytesFromString("utf-8", "");
+    return encoding.encode("utf-8", "");
 }
 
 /**

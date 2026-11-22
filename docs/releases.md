@@ -54,8 +54,8 @@ branches and tags refuse to be deleted. Names with `/` are fine.
 content; `writeFile` commits a new version, or the first one:
 
 ```jennifer
-def v as string init convert.stringFromBytes("utf-8", gitlab.readFile($c, "me/app", "VERSION", "main", 0));
-gitlab.writeFile($c, "me/app", "VERSION", convert.bytesFromString("utf-8", "1.2.1"), "Bump to 1.2.1", "main");
+def v as string init encoding.decode("utf-8", gitlab.readFile($c, "me/app", "VERSION", "main", 0));
+gitlab.writeFile($c, "me/app", "VERSION", encoding.encode("utf-8", "1.2.1"), "Bump to 1.2.1", "main");
 ```
 
 Each `writeFile` and `deleteFile` is a commit of its own, made through the

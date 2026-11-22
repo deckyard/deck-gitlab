@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 # SPDX-FileCopyrightText: Copyright (C) 2026 mplx <mplx@jennifer-lang.dev>
-# pragma-jennifer-version: >=0.26.0
+# pragma-jennifer-version: >=0.27.0
 
 /**
  * White-box tests for gitlab: jennifer test src/gitlab_test.j
@@ -164,7 +164,7 @@ func tokenClient(f as Fake) {
  * @return {json.Value} the body
  */
 func bodyJson(s as Seen) {
-    return json.decode(convert.stringFromBytes("utf-8", $s.body));
+    return json.decode(encoding.decode("utf-8", $s.body));
 }
 
 /**
@@ -248,7 +248,7 @@ func testClientSettings() {
     testing.assertTrue($c.tls.skipVerify);
     testing.assertEqual($c.timeoutMs, 5000);
     testing.assertEqual($c.retries, 2);
-    $c = withCaCert($c, convert.bytesFromString("utf-8", "PEM"));
+    $c = withCaCert($c, encoding.encode("utf-8", "PEM"));
     testing.assertFalse($c.tls.skipVerify);
     testing.assertEqual(authHeaders(withToken($c, "abc"))["PRIVATE-TOKEN"], "abc");
     testing.assertEqual(authHeaders(withBearer($c, "abc"))["Authorization"], "Bearer abc");
@@ -317,7 +317,7 @@ func testProjectsAndGroupsAreEncodedOnce() {
             testing.assertContains(messageOf($e), "an API path");
         }
     }
-    def long as string init strings.repeat("x", 100) + convert.fromCodepoint(10);
+    def long as string init strings.replicate("x", 100) + convert.fromCodepoint(10);
     try {
         projectPath($long);
         missed();
@@ -355,7 +355,7 @@ func testFailureText() {
     def said as string init failureText(
         500,
         "",
-        '{"message":"line one\nforged: line two ' + strings.repeat("x", 500) + '"}');
+        '{"message":"line one\nforged: line two ' + strings.replicate("x", 500) + '"}');
     testing.assertFalse(strings.contains($said, convert.fromCodepoint(10)));
     testing.assertContains($said, "line one?forged");
     testing.assertTrue(len($said) < 250);
@@ -914,7 +914,7 @@ func testReleasesAndAssets() {
         "v1.2.0",
         "app",
         "app.tar.gz",
-        convert.bytesFromString("utf-8", "DATA"));
+        encoding.encode("utf-8", "DATA"));
     deleteReleaseLink($c, "grp/sub/app", "v1.2.0", 8);
     deleteRelease($c, "grp/sub/app", "release/1.0");
     def seen as list of Seen init finish($f);
@@ -936,7 +936,7 @@ func testReleasesAndAssets() {
         "/api/v4/projects/grp/sub/app/packages/generic/app/v1.2.0/app.tar.gz");
     testing.assertEqual($seen[3].token, "t0k3n");
     testing.assertEqual($seen[3].contentType, "application/octet-stream");
-    testing.assertEqual(convert.stringFromBytes("utf-8", $seen[3].body), "DATA");
+    testing.assertEqual(encoding.decode("utf-8", $seen[3].body), "DATA");
     def linked as json.Value init bodyJson($seen[4]);
     testing.assertEqual(json.asString($linked, "/link_type"), "package");
     testing.assertEqual(
@@ -950,13 +950,7 @@ func testReleasesAndAssets() {
     testing.assertEqual($seen[6].method, "DELETE");
     for (def bad in ["a b.tar", "~x", "../x", "x/y", ""]) {
         try {
-            uploadPackageFile(
-                client("x"),
-                "7",
-                "app",
-                "1.0",
-                $bad,
-                convert.bytesFromString("utf-8", ""));
+            uploadPackageFile(client("x"), "7", "app", "1.0", $bad, encoding.encode("utf-8", ""));
             missed();
         } catch (e) {
             testing.assertContains(messageOf($e), "package file name");
@@ -995,7 +989,7 @@ func testDownloadsKeepTheToken() {
     def data as bytes init downloadAsset($c, $link, 0);
     def asked as list of Seen init finish($f);
     def fetched as list of Seen init finish($store);
-    testing.assertEqual(convert.stringFromBytes("utf-8", $data), "BYTES");
+    testing.assertEqual(encoding.decode("utf-8", $data), "BYTES");
     testing.assertEqual($asked[0].token, "t0k3n");
     testing.assertEqual($fetched[0].path, "/bucket/obj");
     testing.assertEqual($fetched[0].token, "");
@@ -1035,19 +1029,19 @@ func testFiles() {
         $c,
         "grp/sub/app",
         "docs/new.md",
-        convert.bytesFromString("utf-8", "hi"),
+        encoding.encode("utf-8", "hi"),
         "add",
         "main");
     def changed as string init writeFile(
         $c,
         "grp/sub/app",
         "README.md",
-        convert.bytesFromString("utf-8", "x"),
+        encoding.encode("utf-8", "x"),
         "edit",
         "");
     def gone as string init deleteFile($c, "7", "old.txt", "drop", "dev");
     def seen as list of Seen init finish($f);
-    testing.assertEqual(convert.stringFromBytes("utf-8", $raw), "RAW");
+    testing.assertEqual(encoding.decode("utf-8", $raw), "RAW");
     testing.assertEqual(
         $seen[0].path,
         "/api/v4/projects/grp/sub/app/repository/files/docs/a b.md/raw");
@@ -1073,14 +1067,14 @@ func testFiles() {
     testing.assertEqual(json.asString(bodyJson($seen[6]), "/branch"), "dev");
     testing.assertEqual($gone, "c0ffee3");
     try {
-        writeFile(client("x"), "7", "a.txt", convert.bytesFromString("utf-8", ""), " ", "main");
+        writeFile(client("x"), "7", "a.txt", encoding.encode("utf-8", ""), " ", "main");
         missed();
     } catch (e) {
         testing.assertContains(messageOf($e), "a commit needs a message");
     }
     def g as Fake init fake([answer(500, '{"message":"500 Internal Server Error"}')]);
     try {
-        writeFile(tokenClient($g), "7", "a.txt", convert.bytesFromString("utf-8", ""), "m", "main");
+        writeFile(tokenClient($g), "7", "a.txt", encoding.encode("utf-8", ""), "m", "main");
         missed();
     } catch (e) {
         # only a 404 means "create"; another failure stops
@@ -1350,7 +1344,7 @@ func testNetworkFailuresPassOnUnchanged() {
                     "app",
                     "1.0",
                     "a.txt",
-                    convert.bytesFromString("utf-8", "x"));
+                    encoding.encode("utf-8", "x"));
             }
             missed();
         } catch (e) {
@@ -1461,9 +1455,7 @@ func testTheOtherVerbs() {
     testing.assertEqual(len($seen), len($want));
     def i as int init 0;
     for (def s in $seen) {
-        testing.assertEqual(
-            $s.method + " " + strings.substring($s.path, len("/api/v4")),
-            $want[$i]);
+        testing.assertEqual($s.method + " " + $s.path[len("/api/v4")..], $want[$i]);
         testing.assertEqual($s.token, "t0k3n");
         $i = $i + 1;
     }
@@ -1567,7 +1559,7 @@ func testPlainHttpOnlyToThisMachine() {
                         "app",
                         "1.0",
                         "a.txt",
-                        convert.bytesFromString("utf-8", "x"));
+                        encoding.encode("utf-8", "x"));
                 } else {
                     downloadAsset($c, $link, 0);
                 }

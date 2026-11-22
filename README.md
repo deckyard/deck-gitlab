@@ -41,7 +41,7 @@ gitlab.uploadAsset($c, "my-group/app", "v1.2.0", "app", "app.tar.gz", fs.readByt
 
 ## Requirements
 
-Jennifer 0.26.0 or newer, the default `jennifer` binary (not
+Jennifer 0.27.0 or newer, the default `jennifer` binary (not
 `jennifer-tiny`), and the `net` capability.
 
 ## Development
