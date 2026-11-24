@@ -1428,7 +1428,7 @@ export func graphql(c as Client, query as string, variables as json.Value) {
         }
     }
     if ($c.tls.skipVerify) {
-        $g = gql.insecure($g);
+        $g = gql.withSkipVerify($g);
     } elseif (len($c.tls.caCert) > 0) {
         $g = gql.withCA($g, $c.tls.caCert);
     }
