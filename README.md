@@ -4,7 +4,7 @@
 [![Documentation](https://img.shields.io/badge/docs-github%20pages-blue)](https://deckyard.github.io/deck-gitlab/)
 [![release](https://img.shields.io/github/v/release/deckyard/deck-gitlab)](https://github.com/deckyard/deck-gitlab/releases/latest)
 
-A client for the GitLab REST (v4) and GraphQL API, for
+A client for the GitLab™ REST (v4) and GraphQL™ API, for
 [Jennifer](https://jennifer-lang.dev/) programs: gitlab.com or a
 self-managed instance. Projects, groups and subgroups, members and hooks;
 issues, notes, labels and milestones; merge requests, approvals and
@@ -52,6 +52,14 @@ jennifer test src/gitlab_test.j      # the test overlay
 tools/check-docs.sh                  # docs against the code
 tools/pack.sh dist                   # build the release archive
 ```
+
+## Trademarks
+
+GitLab™ is a trademark of GitLab Inc. GraphQL™ is a trademark of LF
+Projects, LLC. Other product and company names may be trademarks of their
+respective owners. They are used only to identify the products this deck
+works with. This deck is an independent project, not affiliated with,
+sponsored or endorsed by GitLab Inc.
 
 ## Licence
 

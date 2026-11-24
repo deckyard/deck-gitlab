@@ -14,7 +14,7 @@ $c = gitlab.client("https://example.com/gitlab");   # GitLab at /gitlab
 $c = gitlab.client("http://localhost:8929");        # a local test instance
 ```
 
-Use the address the instance calls itself (its `external_url`): GitLab
+Use the address the instance calls itself (its `external_url`): GitLab™
 writes it into the `Link` headers of keyset-paged lists, and `getAll` only
 follows a next page on the client's own address.
 
@@ -78,7 +78,7 @@ for (def hook in gitlab.getAll($c, "/projects/me%2Fapp/hooks")) {
 
 `graphql` posts a query to `/api/graphql` with the same token, certificates
 and timeout, and returns the whole reply; the result is under `/data`.
-GraphQL errors become a `GitlabError` with the server's messages.
+GraphQL™ errors become a `GitlabError` with the server's messages.
 
 ```jennifer
 def r as json.Value init gitlab.graphql($c, '{ currentUser { username } }', json.map());

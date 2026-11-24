@@ -5,7 +5,7 @@
 
 ## Reporting a check
 
-A CI system outside GitLab reports on a commit with a status per name:
+A CI system outside GitLab™ reports on a commit with a status per name:
 
 ```jennifer
 gitlab.setCommitStatus($c, "me/app", $sha, "running", "ci/build", "building", $logUrl);

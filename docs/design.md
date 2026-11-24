@@ -5,7 +5,7 @@
 
 ## Scope
 
-A client for the GitLab REST API (`/api/v4`) and GraphQL, for gitlab.com or a
+A client for the GitLab™ REST API (`/api/v4`) and GraphQL™, for gitlab.com or a
 self-managed instance: projects, groups and subgroups, members, hooks and
 forks; issues, notes, labels and milestones; merge requests, reviewers,
 approvals and merging; releases with their links and uploads to the generic

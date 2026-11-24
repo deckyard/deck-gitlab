@@ -17,7 +17,7 @@ gitlab.closeIssue($c, "me/app", $i.iid);
 `setIssueLabels` replaces the labels, `addIssueLabels` and
 `removeIssueLabel` change them one by one; a label that does not exist yet
 is created. Each returns the issue as it is now. A label name holds no
-comma: GitLab takes the list comma-separated.
+comma: GitLab™ takes the list comma-separated.
 
 `setAssignees` and `setReviewers` take user names and look up their ids;
 GitLab Free keeps one assignee. `setMilestone` takes a milestone's `id`

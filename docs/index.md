@@ -3,9 +3,9 @@
 
 # @deckyard/gitlab
 
-A client for the [GitLab](https://about.gitlab.com/) REST API (`/api/v4`),
+A client for the [GitLab™](https://about.gitlab.com/) REST API (`/api/v4`),
 for gitlab.com or a self-managed instance. `call` reaches any endpoint,
-`getAll` follows the pages of a list and `graphql` runs a GraphQL query.
+`getAll` follows the pages of a list and `graphql` runs a GraphQL™ query.
 Typed verbs cover the daily work: projects, groups and subgroups, members
 and hooks; issues, notes, labels and milestones; merge requests, approvals
 and merging; releases with their links and the generic package registry;
@@ -70,3 +70,11 @@ failed, and `sent` false means GitLab never got the request.
 
 Jennifer 0.27.0 or newer, the default `jennifer` binary, and the `net`
 capability.
+
+## Trademarks
+
+GitLab™ is a trademark of GitLab Inc. GraphQL™ is a trademark of LF
+Projects, LLC. Other product and company names may be trademarks of their
+respective owners. They are used only to identify the products this deck
+works with. This deck is an independent project, not affiliated with,
+sponsored or endorsed by GitLab Inc.

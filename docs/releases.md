@@ -5,7 +5,7 @@
 
 ## Releases
 
-A GitLab release belongs to a tag and is addressed by it. Its assets are
+A GitLab™ release belongs to a tag and is addressed by it. Its assets are
 links; the files themselves live elsewhere, usually in the project's
 generic package registry:
 
@@ -50,7 +50,7 @@ branches and tags refuse to be deleted. Names with `/` are fine.
 
 ## Files
 
-`readFile` reads a file at a branch, tag or commit, a file in Git LFS as its
+`readFile` reads a file at a branch, tag or commit, a file in Git™ LFS as its
 content; `writeFile` commits a new version, or the first one:
 
 ```jennifer

@@ -15,7 +15,7 @@ gitlab.setDefaultBranch($c, $p.fullPath, "main");
 account; the name is also the path. `project` reads one by id or full path,
 `groupProjects` the projects of a group (with its subgroups' when asked),
 `userProjects` a user's, `myProjects` the token account's, and
-`searchProjects` searches what the token may see. `search` runs GitLab's
+`searchProjects` searches what the token may see. `search` runs GitLab™'s
 search API in one project or the whole instance and returns the matches as
 JSON.
 

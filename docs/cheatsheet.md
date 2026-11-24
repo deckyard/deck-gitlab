@@ -24,7 +24,7 @@ before anything is sent (status 0).
 | Constant | Value | Meaning |
 |---|---|---|
 | `ERROR_KIND` | `"gitlab"` | The `kind` of every error of the deck's own |
-| `PAGE_SIZE` | `100` | The entries `getAll` and the list verbs ask for per page, GitLab's most |
+| `PAGE_SIZE` | `100` | The entries `getAll` and the list verbs ask for per page, GitLab™'s most |
 | `MAX_PAGES` | `1000` | The most pages a list follows before it refuses: 100000 entries |
 | `ACCESS_GUEST` | `10` | Access level of a guest |
 | `ACCESS_PLANNER` | `15` | Access level of a planner |
@@ -262,7 +262,7 @@ A commit.
 | `sha as string` | the commit SHA |
 | `title as string` | the first line of the message |
 | `message as string` | the commit message |
-| `author as string` | the author's name, as Git records it |
+| `author as string` | the author's name, as Git™ records it |
 | `authorEmail as string` | the author's e-mail address |
 | `date as string` | the author date, RFC 3339 |
 | `parents as list of string` | the parent SHAs |
@@ -384,7 +384,7 @@ A member of a project.
 | `gitlab.withPlainHttp(c)` | `Client` | allow the token over plain http to another machine (an instance on the LAN) |
 | `gitlab.call(c, method, path, body)` | `json.Value` | any endpoint; `body` is JSON text |
 | `gitlab.getAll(c, path)` | `list of json.Value` | every page of a list endpoint |
-| `gitlab.graphql(c, query, variables)` | `json.Value` | a GraphQL query or mutation at `/api/graphql` |
+| `gitlab.graphql(c, query, variables)` | `json.Value` | a GraphQL™ query or mutation at `/api/graphql` |
 | `gitlab.version(c)` | `string` | the version of the instance |
 | `gitlab.currentUser(c)` | `User` | the account the token belongs to |
 | `gitlab.user(c, username)` | `User` | an account by its user name |
