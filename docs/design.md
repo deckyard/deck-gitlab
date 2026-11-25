@@ -153,7 +153,7 @@ deck error is typed `GitlabError`.
 
 ## Dependencies on the interpreter
 
-- Floor `>=0.27.0`, for the UTF-8 codecs of `encoding.encode` / `decode`
+- Floor `>=0.28.0` (the calls 0.29.0 removes are replaced by their 0.28.0 forms), for the UTF-8 codecs of `encoding.encode` / `decode`
   and `strings.replicate`; the default binary and the `net` capability (not
   `jennifer-tiny`).
 - The bundled `http`, `graphql` and `uri` modules; `http.send`'s cross-origin
